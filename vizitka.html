@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Олеся Москвицова</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --rose:    #d4a0be;
+      --rose2:   #f0cfe0;
+      --deep:    #7a3d5f;
+      --bg:      #0a0a0a;
+      --card-bg: #100810;
+    }
+
+    /* ─── BODY ─────────────────────────────────────────── */
+    body {
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Georgia', serif;
+      overflow: hidden;
+    }
+
+    /* ─── CANVAS BG ─────────────────────────────────────── */
+    canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── CARD ───────────────────────────────────────────── */
+    .card {
+      position: relative;
+      z-index: 1;
+      width: min(480px, 92vw);
+      padding: 56px 44px 48px;
+      text-align: center;
+      background: linear-gradient(160deg, #13091099, #0a0a0acc);
+      border: 1px solid rgba(212,160,190,.18);
+      border-radius: 2px;
+      backdrop-filter: blur(6px);
+      box-shadow:
+        0 0 60px rgba(212,160,190,.06),
+        0 30px 80px rgba(0,0,0,.6);
+    }
+
+    /* soft top glow */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -60px; left: 50%;
+      transform: translateX(-50%);
+      width: 260px; height: 120px;
+      background: radial-gradient(ellipse, rgba(212,160,190,.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── TOP ORNAMENT ───────────────────────────────────── */
+    .ornament {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .ornament-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,160,190,.35));
+    }
+    .ornament-line.right {
+      background: linear-gradient(90deg, rgba(212,160,190,.35), transparent);
+    }
+    .ornament svg { flex-shrink: 0; }
+
+    /* ─── AVATAR ─────────────────────────────────────────── */
+    .avatar-wrap {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 28px;
+    }
+    .avatar-ring {
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        rgba(212,160,190,0)   0%,
+        rgba(212,160,190,.9) 30%,
+        rgba(240,207,224,1)  50%,
+        rgba(212,160,190,.9) 70%,
+        rgba(212,160,190,0) 100%
+      );
+      animation: spin 6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .avatar-inner {
+      position: absolute;
+      inset: 2px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #1e0d18, #0d060d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .initials {
+      font-size: 1.9rem;
+      font-weight: 300;
+      letter-spacing: .05em;
+      background: linear-gradient(135deg, #ffffff, var(--rose2), var(--rose));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      user-select: none;
+    }
+
+    /* ─── NAME ───────────────────────────────────────────── */
+    .name-wrap { position: relative; margin-bottom: 14px; }
+
+    /* glow clone */
+    .name-glow {
+      position: absolute;
+      inset: 0;
+      font-size: clamp(1.75rem, 5.5vw, 2.6rem);
+      font-weight: 300;
+      letter-spacing: .04em;
+      color: var(--rose);
+      filter: blur(18px);
+      opacity: .55;
+      animation: pulse 3.5s ease-in-out infinite;
+      pointer-events: none;
+      user-select: none;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: .4; }
+      50%      { opacity: .75; }
+    }
+
+    .name {
+      position: relative;
+      font-size: clamp(1.75rem, 5.5vw, 2.6rem);
+      font-weight: 300;
+      letter-spacing: .04em;
+      background: linear-gradient(135deg, #fff 0%, var(--rose2) 40%, var(--rose) 70%, #fff 100%);
+      background-size: 250% 250%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shine 5s ease infinite;
+    }
+    @keyframes shine {
+      0%,100% { background-position: 0% 50%; }
+      50%      { background-position: 100% 50%; }
+    }
+
+    /* ─── SPEC ───────────────────────────────────────────── */
+    .spec {
+      font-family: sans-serif;
+      font-size: clamp(.72rem, 2vw, .82rem);
+      font-weight: 300;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      color: rgba(212,160,190,.62);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    /* ─── DIVIDER ────────────────────────────────────────── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .div-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,160,190,.25));
+    }
+    .div-line.r { background: linear-gradient(90deg, rgba(212,160,190,.25), transparent); }
+    .div-dot {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: rgba(212,160,190,.5);
+    }
+
+    /* ─── SOCIALS ────────────────────────────────────────── */
+    .socials {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .soc {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 1px solid rgba(212,160,190,.2);
+      color: rgba(212,160,190,.55);
+      text-decoration: none;
+      transition: color .35s, border-color .35s, transform .35s, box-shadow .35s;
+      overflow: hidden;
+    }
+    .soc::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,160,190,.18) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity .35s;
+    }
+    .soc:hover {
+      color: #fff;
+      border-color: rgba(212,160,190,.7);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 28px rgba(212,160,190,.22);
+    }
+    .soc:hover::after { opacity: 1; }
+    .soc svg {
+      position: relative;
+      z-index: 1;
+      width: 22px; height: 22px;
+    }
+
+    /* label under icon */
+    .soc-label {
+      font-family: sans-serif;
+      font-size: .6rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(212,160,190,.4);
+      margin-top: 6px;
+      text-align: center;
+    }
+    .soc-unit { display: flex; flex-direction: column; align-items: center; }
+
+    /* ─── BUTTON ─────────────────────────────────────────── */
+    .btn {
+      display: inline-block;
+      position: relative;
+      padding: 13px 48px;
+      font-family: sans-serif;
+      font-size: .78rem;
+      font-weight: 400;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--rose);
+      text-decoration: none;
+      border: 1px solid rgba(212,160,190,.38);
+      background: transparent;
+      cursor: pointer;
+      overflow: hidden;
+      transition: color .4s, border-color .4s, box-shadow .4s;
+    }
+    /* shimmer sweep */
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -110%;
+      width: 60%; height: 100%;
+      background: linear-gradient(
+        110deg,
+        transparent 0%,
+        rgba(212,160,190,.18) 50%,
+        transparent 100%
+      );
+      transition: left .55s ease;
+    }
+    .btn:hover { color: #fff; border-color: rgba(212,160,190,.8); box-shadow: 0 0 36px rgba(212,160,190,.2); }
+    .btn:hover::before { left: 150%; }
+
+    /* pulse ring on button */
+    .btn::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 1px solid rgba(212,160,190,.2);
+      animation: btnRing 2.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes btnRing {
+      0%,100% { opacity: 0; transform: scale(1); }
+      50%      { opacity: 1; transform: scale(1.03); }
+    }
+
+    /* ─── FOOTER TAG ─────────────────────────────────────── */
+    .tag {
+      margin-top: 44px;
+      font-family: sans-serif;
+      font-size: .6rem;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: rgba(212,160,190,.18);
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────────────── */
+    @media (max-width: 400px) {
+      .card { padding: 44px 28px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div class="card">
+
+  <!-- top ornament -->
+  <div class="ornament">
+    <div class="ornament-line"></div>
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <circle cx="9" cy="9" r="2.5" fill="rgba(212,160,190,.6)"/>
+      <circle cx="9" cy="9" r="6" stroke="rgba(212,160,190,.3)" stroke-width=".8"/>
+      <line x1="9" y1="0" x2="9" y2="4"   stroke="rgba(212,160,190,.25)" stroke-width=".8"/>
+      <line x1="9" y1="14" x2="9" y2="18" stroke="rgba(212,160,190,.25)" stroke-width=".8"/>
+      <line x1="0" y1="9" x2="4" y2="9"   stroke="rgba(212,160,190,.25)" stroke-width=".8"/>
+      <line x1="14" y1="9" x2="18" y2="9" stroke="rgba(212,160,190,.25)" stroke-width=".8"/>
+    </svg>
+    <div class="ornament-line right"></div>
+  </div>
+
+  <!-- avatar -->
+  <div class="avatar-wrap">
+    <div class="avatar-ring"></div>
+    <div class="avatar-inner">
+      <span class="initials">ОМ</span>
+    </div>
+  </div>
+
+  <!-- name -->
+  <div class="name-wrap">
+    <div class="name-glow" aria-hidden="true">Олеся Москвицова</div>
+    <h1 class="name">Олеся Москвицова</h1>
+  </div>
+
+  <!-- specialization -->
+  <p class="spec">Основатель студии<br>лазерной эпиляции<br>и аппаратной косметологии</p>
+
+  <!-- divider -->
+  <div class="divider">
+    <div class="div-line"></div>
+    <div class="div-dot"></div>
+    <div class="div-dot"></div>
+    <div class="div-dot"></div>
+    <div class="div-line r"></div>
+  </div>
+
+  <!-- social icons -->
+  <div class="socials">
+
+    <!-- Telegram -->
+    <div class="soc-unit">
+      <a href="https://t.me/lesymos" class="soc" target="_blank" rel="noopener" title="Telegram @lesymos">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+      </a>
+      <div class="soc-label">Telegram</div>
+    </div>
+
+    <!-- WhatsApp placeholder (same number assumed) -->
+    <div class="soc-unit">
+      <a href="https://t.me/lesymos" class="soc" target="_blank" rel="noopener" title="Написать в мессенджере">
+        <!-- diamond / studio icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5"/>
+          <line x1="12" y1="2"  x2="12" y2="22"/>
+          <line x1="2"  y1="8.5" x2="22" y2="8.5"/>
+          <line x1="2"  y1="15.5" x2="22" y2="15.5"/>
+        </svg>
+      </a>
+      <div class="soc-label">Портфолио</div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <a href="https://t.me/lesymos" class="btn" target="_blank" rel="noopener">Написать мне</a>
+
+  <p class="tag">Beauty Studio &nbsp;·&nbsp; @lesymos</p>
+</div>
+
+<!-- ─── PARTICLES CANVAS ───────────────────────────────────── -->
+<script>
+(function () {
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  class Particle {
+    constructor() { this.reset(true); }
+    reset(init) {
+      this.x    = Math.random() * W;
+      this.y    = init ? Math.random() * H : H + 10;
+      this.r    = Math.random() * 1.8 + 0.4;
+      this.vx   = (Math.random() - 0.5) * 0.3;
+      this.vy   = -(Math.random() * 0.5 + 0.2);
+      this.life = 0;
+      this.max  = Math.random() * 200 + 120;
+      this.hue  = Math.random() * 30 + 330; // pink-red range
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life++;
+      if (this.life > this.max || this.y < -10) this.reset(false);
+    }
+    draw() {
+      const prog  = this.life / this.max;
+      const alpha = prog < 0.15
+        ? prog / 0.15
+        : prog > 0.75
+          ? (1 - prog) / 0.25
+          : 1;
+      ctx.save();
+      ctx.globalAlpha = alpha * 0.55;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${this.hue},60%,78%)`;
+      ctx.fill();
+      /* soft glow */
+      ctx.globalAlpha = alpha * 0.12;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r * 4, 0, Math.PI * 2);
+      ctx.fillStyle = `hsl(${this.hue},60%,78%)`;
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function init() {
+    resize();
+    particles = Array.from({ length: 55 }, () => new Particle());
+    window.addEventListener('resize', resize);
+    loop();
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(loop);
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
