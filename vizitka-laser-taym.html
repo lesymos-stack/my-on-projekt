@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Лазер Тайм — Центр лазерной эпиляции</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  *{margin:0;padding:0;box-sizing:border-box}
+
+  :root{
+    --gold:#c9a96e;
+    --gold-light:#e8d5a8;
+    --gold-dark:#a07d3f;
+    --bg:#060606;
+    --card-bg:rgba(12,12,12,.85);
+  }
+
+  body{
+    background:var(--bg);
+    color:#fff;
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* subtle noise texture overlay */
+  body::before{
+    content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+    opacity:.03;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ambient glow */
+  .bg-glow{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bg-glow span{
+    position:absolute;border-radius:50%;filter:blur(120px);
+    animation:drift 12s ease-in-out infinite;
+  }
+  .bg-glow span:nth-child(1){width:500px;height:500px;background:rgba(201,169,110,.06);top:-15%;left:-10%;animation-delay:0s}
+  .bg-glow span:nth-child(2){width:400px;height:400px;background:rgba(201,169,110,.04);bottom:-15%;right:-10%;animation-delay:3s}
+  .bg-glow span:nth-child(3){width:300px;height:300px;background:rgba(255,255,255,.02);top:50%;left:60%;animation-delay:6s}
+  @keyframes drift{
+    0%,100%{transform:translate(0,0)}
+    50%{transform:translate(20px,-20px)}
+  }
+
+  /* card */
+  .card{
+    position:relative;z-index:1;
+    width:100%;max-width:480px;
+    margin:20px;
+    padding:56px 40px 48px;
+    background:var(--card-bg);
+    border:1px solid rgba(201,169,110,.1);
+    border-radius:24px;
+    text-align:center;
+    animation:reveal 1s cubic-bezier(.23,1,.32,1);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.03),
+      0 30px 80px rgba(0,0,0,.5),
+      0 0 120px rgba(201,169,110,.03);
+    backdrop-filter:blur(40px);
+  }
+  @keyframes reveal{
+    from{opacity:0;transform:translateY(20px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  /* gold line at top */
+  .card::before{
+    content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:60px;height:1px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+
+  /* logo */
+  .logo-wrap{
+    width:100px;height:100px;margin:0 auto 32px;position:relative;
+  }
+
+  /* outer spinning ring */
+  .logo-ring-outer{
+    position:absolute;inset:-14px;border-radius:50%;
+    border:1px solid transparent;
+    border-top-color:rgba(201,169,110,.4);
+    border-right-color:rgba(201,169,110,.1);
+    animation:spinCW 6s linear infinite;
+  }
+  @keyframes spinCW{to{transform:rotate(360deg)}}
+
+  /* inner counter-spinning ring */
+  .logo-ring-inner{
+    position:absolute;inset:-6px;border-radius:50%;
+    border:1px solid transparent;
+    border-bottom-color:rgba(201,169,110,.3);
+    border-left-color:rgba(201,169,110,.08);
+    animation:spinCCW 4s linear infinite;
+  }
+  @keyframes spinCCW{to{transform:rotate(-360deg)}}
+
+  /* pulsing glow behind circle */
+  .logo-glow{
+    position:absolute;inset:-20px;border-radius:50%;
+    background:radial-gradient(circle,rgba(201,169,110,.08),transparent 70%);
+    animation:glowPulse 3s ease-in-out infinite;
+  }
+  @keyframes glowPulse{
+    0%,100%{opacity:.5;transform:scale(1)}
+    50%{opacity:1;transform:scale(1.1)}
+  }
+
+  /* dot markers on orbit */
+  .logo-orbit-dot{
+    position:absolute;width:4px;height:4px;border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 0 6px rgba(201,169,110,.6);
+  }
+  .logo-orbit-dot:nth-child(1){top:-10px;left:50%;transform:translateX(-50%);animation:orbitFade 3s ease-in-out infinite}
+  .logo-orbit-dot:nth-child(2){bottom:-10px;left:50%;transform:translateX(-50%);animation:orbitFade 3s ease-in-out infinite 1.5s}
+  @keyframes orbitFade{
+    0%,100%{opacity:.2}
+    50%{opacity:1}
+  }
+
+  .logo{
+    width:100px;height:100px;border-radius:50%;
+    background:linear-gradient(145deg,rgba(201,169,110,.1),rgba(201,169,110,.03));
+    border:1px solid rgba(201,169,110,.15);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    animation:logoBreath 4s ease-in-out infinite;
+  }
+  @keyframes logoBreath{
+    0%,100%{box-shadow:0 0 20px rgba(201,169,110,.1)}
+    50%{box-shadow:0 0 40px rgba(201,169,110,.2)}
+  }
+
+  /* LT monogram text */
+  .logo-text{
+    font-family:'Inter',sans-serif;
+    font-size:30px;
+    font-weight:800;
+    letter-spacing:2px;
+    background:linear-gradient(135deg,var(--gold-light),var(--gold),var(--gold-dark));
+    background-size:200% 200%;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:gradShift 4s ease-in-out infinite;
+    user-select:none;
+    line-height:1;
+  }
+  @keyframes gradShift{
+    0%,100%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+  }
+
+  /* typography */
+  .name{
+    font-size:clamp(24px,5.5vw,34px);
+    font-weight:800;
+    letter-spacing:6px;
+    text-transform:uppercase;
+    color:var(--gold-light);
+    margin-bottom:16px;
+    line-height:1.2;
+  }
+
+  .sep{
+    width:32px;height:1px;margin:0 auto 20px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+
+  .tagline{
+    font-size:clamp(13px,3vw,15px);
+    font-weight:400;
+    color:rgba(255,255,255,.45);
+    line-height:1.7;
+    margin-bottom:6px;
+    max-width:360px;
+    margin-left:auto;margin-right:auto;
+    letter-spacing:.3px;
+  }
+  .tagline-accent{
+    font-size:clamp(11px,2.5vw,12.5px);
+    color:rgba(201,169,110,.4);
+    font-weight:300;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    margin-bottom:40px;
+  }
+
+  /* contact row */
+  .contacts{
+    display:flex;justify-content:center;gap:32px;margin-bottom:40px;flex-wrap:wrap;
+  }
+  .contact-item{
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    text-decoration:none;
+    transition:all .4s cubic-bezier(.23,1,.32,1);
+  }
+  .contact-icon{
+    width:52px;height:52px;border-radius:50%;
+    background:rgba(201,169,110,.05);
+    border:1px solid rgba(201,169,110,.1);
+    display:flex;align-items:center;justify-content:center;
+    transition:all .4s cubic-bezier(.23,1,.32,1);
+  }
+  .contact-icon svg{
+    width:20px;height:20px;fill:rgba(201,169,110,.5);
+    transition:fill .4s;
+  }
+  .contact-label{
+    font-size:10px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.25);
+    font-weight:500;
+    transition:color .4s;
+  }
+  .contact-item:hover .contact-icon{
+    background:rgba(201,169,110,.1);
+    border-color:rgba(201,169,110,.25);
+    transform:translateY(-3px);
+    box-shadow:0 8px 30px rgba(201,169,110,.1);
+  }
+  .contact-item:hover .contact-icon svg{fill:var(--gold)}
+  .contact-item:hover .contact-label{color:rgba(255,255,255,.5)}
+
+  /* buttons */
+  .buttons{display:flex;flex-direction:column;align-items:center;gap:12px}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:10px;
+    width:100%;max-width:320px;
+    padding:17px 32px;
+    border:none;border-radius:60px;
+    font-family:inherit;
+    font-size:13px;font-weight:600;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    cursor:pointer;
+    text-decoration:none;
+    transition:all .4s cubic-bezier(.23,1,.32,1);
+    position:relative;overflow:hidden;
+  }
+
+  .btn-primary{
+    background:linear-gradient(135deg,var(--gold),var(--gold-dark));
+    color:#060606;
+    box-shadow:0 4px 24px rgba(201,169,110,.2);
+  }
+  .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 40px rgba(201,169,110,.3);
+    filter:brightness(1.1);
+  }
+  .btn-primary:active{transform:translateY(0)}
+
+  /* shimmer */
+  .btn-primary::after{
+    content:'';position:absolute;top:0;left:-100%;
+    width:50%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+    animation:shimmer 3.5s ease-in-out infinite;
+  }
+  @keyframes shimmer{0%{left:-100%}50%,100%{left:150%}}
+
+  .btn-secondary{
+    background:transparent;
+    color:var(--gold-light);
+    border:1px solid rgba(201,169,110,.15);
+    box-shadow:none;
+  }
+  .btn-secondary:hover{
+    transform:translateY(-2px);
+    border-color:rgba(201,169,110,.3);
+    background:rgba(201,169,110,.04);
+    box-shadow:0 8px 30px rgba(201,169,110,.06);
+  }
+  .btn-secondary:active{transform:translateY(0)}
+
+  .pulse-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--gold-light);
+    animation:pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:.4;transform:scale(1.5)}
+  }
+
+  .footer{
+    margin-top:40px;
+    font-size:10px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.12);
+    font-weight:400;
+  }
+
+  /* responsive */
+  @media(max-width:480px){
+    .card{padding:44px 24px 40px;margin:12px;border-radius:20px}
+    .contacts{gap:20px}
+    .contact-icon{width:46px;height:46px}
+    .btn{padding:15px 24px;font-size:12px;max-width:280px}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-glow">
+  <span></span><span></span><span></span>
+</div>
+
+<div class="card">
+
+  <!-- Logo -->
+  <div class="logo-wrap">
+    <div class="logo-glow"></div>
+    <div class="logo-ring-outer"></div>
+    <div class="logo-ring-inner"></div>
+    <span class="logo-orbit-dot"></span>
+    <span class="logo-orbit-dot"></span>
+    <div class="logo">
+      <span class="logo-text">LT</span>
+    </div>
+  </div>
+
+  <!-- Name -->
+  <h1 class="name">Лазер Тайм</h1>
+
+  <div class="sep"></div>
+
+  <!-- Tagline -->
+  <p class="tagline">Центр лазерной эпиляции &amp; эстетической коррекции фигуры</p>
+  <p class="tagline-accent">Искусство аппаратного преображения</p>
+
+  <!-- Contact row: phone + location -->
+  <div class="contacts">
+
+    <a href="tel:+70000000000" class="contact-item">
+      <div class="contact-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.58.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.25 1.02l-2.2 2.2z"/>
+        </svg>
+      </div>
+      <span class="contact-label">Позвонить</span>
+    </a>
+
+    <a href="https://yandex.ru/maps/" target="_blank" rel="noopener" class="contact-item">
+      <div class="contact-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1112 6.5a2.5 2.5 0 010 5z"/>
+        </svg>
+      </div>
+      <span class="contact-label">На карте</span>
+    </a>
+
+  </div>
+
+  <!-- CTA Buttons -->
+  <div class="buttons">
+    <a href="https://t.me/lesymos" target="_blank" rel="noopener" class="btn btn-primary">
+      <span class="pulse-dot"></span>
+      Консультация
+    </a>
+    <a href="https://t.me/lesymos" target="_blank" rel="noopener" class="btn btn-secondary">
+      Выбрать процедуру
+    </a>
+  </div>
+
+  <p class="footer">Laser Time &middot; 2026</p>
+
+</div>
+
+</body>
+</html>
