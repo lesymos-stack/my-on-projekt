@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TryOn — Виртуальная примерочная</title>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <!-- Storage не нужен — картинки хранятся как base64 в Firestore -->
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --neon-cyan: #00fff5;
+            --neon-magenta: #ff00e5;
+            --neon-violet: #bf5af2;
+            --neon-blue: #5e5eff;
+            --neon-lime: #39ff14;
+            --bg-dark: #000000;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --glass: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #eef0ff;
+            --text-muted: #7a7d9e;
+            --radius: 20px;
+            --danger: #ff4757;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ========== BACKGROUND ========== */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0,255,245,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,255,245,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 70%);
+        }
+
+        .bg-glow {
+            position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+        }
+
+        .bg-glow .orb {
+            position: absolute; border-radius: 50%; filter: blur(160px); opacity: 0.15;
+            animation: orbFloat 16s ease-in-out infinite alternate;
+        }
+        .bg-glow .orb:nth-child(1) { width: 400px; height: 400px; background: var(--neon-magenta); top: -10%; left: -5%; }
+        .bg-glow .orb:nth-child(2) { width: 350px; height: 350px; background: var(--neon-cyan); bottom: -8%; right: -4%; animation-delay: -6s; }
+        .bg-glow .orb:nth-child(3) { width: 300px; height: 300px; background: var(--neon-violet); top: 40%; left: 50%; animation-delay: -10s; }
+
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, -30px) scale(1.15); }
+        }
+
+        /* ========== GLASS ========== */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* ========== NAV ========== */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 14px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-logo {
+            font-size: 1.3rem; font-weight: 900;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; cursor: pointer;
+        }
+
+        .nav-links { display: flex; gap: 8px; }
+
+        .nav-link {
+            padding: 8px 20px; border-radius: 50px; border: 1px solid var(--glass-border);
+            background: transparent; color: var(--text-muted); font-size: 0.88rem;
+            cursor: pointer; transition: all 0.3s; font-weight: 600;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: var(--neon-cyan); border-color: rgba(0,255,245,0.3);
+            background: rgba(0,255,245,0.06);
+        }
+
+        /* ========== SCREENS ========== */
+        .screen { display: none; position: relative; z-index: 1; min-height: 100vh; padding-top: 70px; }
+        .screen.active { display: block; }
+
+        /* ========== LANDING ========== */
+        .landing { text-align: center; padding: 120px 24px 80px; }
+
+        .landing h1 {
+            font-size: clamp(2rem, 6vw, 3.5rem); font-weight: 900; line-height: 1.1; margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan), var(--neon-violet));
+            background-size: 300% 300%;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            animation: neonGradient 6s ease-in-out infinite;
+        }
+
+        @keyframes neonGradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .landing .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.25rem); color: var(--text-muted);
+            max-width: 600px; margin: 0 auto 50px;
+        }
+
+        .landing-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 80px; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 16px 40px; border: none; border-radius: 50px;
+            font-size: 1.05rem; font-weight: 700; cursor: pointer;
+            transition: all 0.3s; text-decoration: none; position: relative; overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+            color: #05050f;
+        }
+        .btn-primary:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,0,229,0.3), 0 0 60px rgba(0,255,245,0.15); }
+
+        .btn-secondary {
+            background: transparent; color: var(--text);
+            border: 1px solid var(--glass-border);
+        }
+        .btn-secondary:hover { border-color: rgba(0,255,245,0.4); color: var(--neon-cyan); }
+
+        .btn-danger {
+            background: rgba(255,71,87,0.15); color: var(--danger);
+            border: 1px solid rgba(255,71,87,0.3);
+        }
+        .btn-danger:hover { background: rgba(255,71,87,0.25); }
+
+        .btn-small { padding: 10px 24px; font-size: 0.9rem; }
+
+        /* Steps */
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto 80px; }
+
+        .step {
+            padding: 36px 28px; border-radius: var(--radius); text-align: center;
+            position: relative; overflow: hidden; transition: transform 0.3s;
+        }
+        .step:hover { transform: translateY(-6px); }
+
+        .step-num {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; font-weight: 900; margin-bottom: 20px;
+        }
+        .step:nth-child(1) .step-num { background: rgba(255,0,229,0.1); color: var(--neon-magenta); }
+        .step:nth-child(2) .step-num { background: rgba(0,255,245,0.1); color: var(--neon-cyan); }
+        .step:nth-child(3) .step-num { background: rgba(191,90,242,0.1); color: var(--neon-violet); }
+
+        .step h3 { font-size: 1.1rem; margin-bottom: 10px; }
+        .step:nth-child(1) h3 { color: var(--neon-magenta); }
+        .step:nth-child(2) h3 { color: var(--neon-cyan); }
+        .step:nth-child(3) h3 { color: var(--neon-violet); }
+        .step p { color: var(--text-muted); font-size: 0.92rem; }
+
+        /* Use cases */
+        .usecases { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: 700px; margin: 0 auto; }
+
+        .usecase-tag {
+            padding: 10px 22px; border-radius: 50px; font-size: 0.88rem; font-weight: 600;
+            border: 1px solid var(--glass-border); color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        .usecase-tag:hover { color: var(--neon-cyan); border-color: rgba(0,255,245,0.3); }
+
+        /* ========== TRYON SCREEN ========== */
+        .tryon-container {
+            display: grid; grid-template-columns: 280px 1fr; gap: 20px;
+            max-width: 1200px; margin: 0 auto; padding: 20px 24px 40px;
+            min-height: calc(100vh - 70px);
+        }
+
+        /* Catalog sidebar */
+        .catalog-panel {
+            border-radius: var(--radius); padding: 20px;
+            overflow-y: auto; max-height: calc(100vh - 110px);
+            position: sticky; top: 90px;
+        }
+
+        .catalog-panel h3 {
+            font-size: 1rem; font-weight: 700; margin-bottom: 16px;
+            color: var(--neon-cyan);
+        }
+
+        .catalog-categories { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+
+        .cat-btn {
+            padding: 6px 14px; border-radius: 20px; border: 1px solid var(--glass-border);
+            background: transparent; color: var(--text-muted); font-size: 0.8rem;
+            cursor: pointer; transition: all 0.3s; font-weight: 600;
+        }
+        .cat-btn:hover, .cat-btn.active {
+            color: var(--neon-magenta); border-color: rgba(255,0,229,0.4);
+            background: rgba(255,0,229,0.08);
+        }
+
+        .catalog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .catalog-item {
+            border-radius: 14px; overflow: hidden; cursor: pointer;
+            border: 2px solid transparent; transition: all 0.3s;
+            aspect-ratio: 1; position: relative;
+            background: rgba(255,255,255,0.03);
+        }
+        .catalog-item:hover { border-color: rgba(0,255,245,0.3); transform: scale(1.03); }
+        .catalog-item.selected { border-color: var(--neon-cyan); box-shadow: 0 0 20px rgba(0,255,245,0.2); }
+
+        .catalog-item img {
+            width: 100%; height: 100%; object-fit: contain; padding: 8px;
+            background: repeating-conic-gradient(rgba(255,255,255,0.03) 0% 25%, transparent 0% 50%) 50%/16px 16px;
+        }
+
+        .catalog-item-name {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 4px 8px; font-size: 0.7rem; color: var(--text);
+            background: rgba(0,0,0,0.7); text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .catalog-empty {
+            grid-column: 1 / -1; text-align: center; padding: 30px 10px;
+            color: var(--text-muted); font-size: 0.9rem;
+        }
+
+        /* Canvas area */
+        .canvas-area {
+            display: flex; flex-direction: column; gap: 16px;
+        }
+
+        .canvas-toolbar {
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+            padding: 14px 20px; border-radius: var(--radius);
+        }
+
+        .canvas-toolbar label {
+            font-size: 0.82rem; color: var(--text-muted); font-weight: 600;
+        }
+
+        .canvas-toolbar input[type="range"] {
+            -webkit-appearance: none; width: 120px; height: 4px;
+            background: rgba(255,255,255,0.1); border-radius: 4px; outline: none;
+        }
+        .canvas-toolbar input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+            background: var(--neon-cyan); cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,255,245,0.4);
+        }
+
+        .canvas-wrapper {
+            border-radius: var(--radius); overflow: hidden;
+            position: relative; flex: 1;
+            background: repeating-conic-gradient(rgba(255,255,255,0.02) 0% 25%, rgba(255,255,255,0.04) 0% 50%) 50%/20px 20px;
+            min-height: 500px; display: flex; align-items: center; justify-content: center;
+            border: 1px solid var(--glass-border);
+        }
+
+        .canvas-wrapper canvas {
+            max-width: 100%; max-height: calc(100vh - 220px);
+            cursor: grab;
+        }
+        .canvas-wrapper canvas:active { cursor: grabbing; }
+
+        .upload-zone {
+            text-align: center; padding: 60px 30px; cursor: pointer;
+            border: 2px dashed rgba(255,255,255,0.1); border-radius: var(--radius);
+            transition: all 0.3s; width: 100%;
+        }
+        .upload-zone:hover { border-color: rgba(0,255,245,0.3); background: rgba(0,255,245,0.02); }
+        .upload-zone.dragover { border-color: var(--neon-cyan); background: rgba(0,255,245,0.05); }
+
+        .upload-zone svg { margin-bottom: 16px; opacity: 0.5; }
+        .upload-zone p { color: var(--text-muted); font-size: 0.95rem; }
+        .upload-zone .upload-hint { font-size: 0.82rem; margin-top: 8px; opacity: 0.6; }
+
+        /* ========== ADMIN SCREEN ========== */
+        .admin-container {
+            max-width: 800px; margin: 0 auto; padding: 20px 24px 60px;
+        }
+
+        .auth-form {
+            max-width: 400px; margin: 80px auto; padding: 40px;
+            border-radius: var(--radius); text-align: center;
+        }
+
+        .auth-form h2 {
+            font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .auth-form .auth-subtitle { color: var(--text-muted); margin-bottom: 30px; font-size: 0.92rem; }
+
+        .form-group { margin-bottom: 16px; text-align: left; }
+        .form-group label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+
+        .form-input {
+            width: 100%; padding: 12px 16px; border-radius: 12px;
+            border: 1px solid var(--glass-border); background: rgba(255,255,255,0.04);
+            color: var(--text); font-size: 0.95rem; outline: none;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus { border-color: rgba(0,255,245,0.4); }
+
+        .form-input::placeholder { color: var(--text-muted); opacity: 0.5; }
+
+        .auth-toggle { margin-top: 16px; font-size: 0.85rem; color: var(--text-muted); }
+        .auth-toggle a {
+            color: var(--neon-cyan); cursor: pointer; text-decoration: none;
+            border-bottom: 1px solid transparent; transition: border-color 0.3s;
+        }
+        .auth-toggle a:hover { border-bottom-color: var(--neon-cyan); }
+
+        .auth-error { color: var(--danger); font-size: 0.85rem; margin-top: 10px; min-height: 20px; }
+
+        /* Admin panel content */
+        .admin-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 30px; flex-wrap: wrap; gap: 12px;
+        }
+        .admin-header h2 {
+            font-size: 1.4rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .admin-user { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Add product form */
+        .add-product-card {
+            padding: 28px; border-radius: var(--radius); margin-bottom: 30px;
+        }
+        .add-product-card h3 {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 20px;
+            color: var(--neon-cyan);
+        }
+
+        .add-product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .product-image-upload {
+            grid-column: 1 / -1; padding: 30px; text-align: center;
+            border: 2px dashed rgba(255,255,255,0.1); border-radius: 14px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .product-image-upload:hover { border-color: rgba(0,255,245,0.3); }
+        .product-image-upload.has-image { border-color: var(--neon-cyan); border-style: solid; }
+        .product-image-upload img { max-width: 120px; max-height: 120px; object-fit: contain; }
+        .product-image-upload p { color: var(--text-muted); font-size: 0.85rem; margin-top: 8px; }
+
+        /* Product list */
+        .products-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+
+        .product-card {
+            border-radius: 16px; overflow: hidden; position: relative;
+            transition: all 0.3s;
+        }
+        .product-card:hover { transform: translateY(-4px); }
+
+        .product-card-img {
+            aspect-ratio: 1; padding: 12px;
+            background: repeating-conic-gradient(rgba(255,255,255,0.02) 0% 25%, rgba(255,255,255,0.04) 0% 50%) 50%/16px 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .product-card-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .product-card-info { padding: 12px; }
+        .product-card-info h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+        .product-card-info .product-cat { font-size: 0.78rem; color: var(--neon-magenta); }
+
+        .product-card-delete {
+            position: absolute; top: 8px; right: 8px;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(255,71,87,0.2); border: none;
+            color: var(--danger); cursor: pointer; font-size: 1rem;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .product-card:hover .product-card-delete { opacity: 1; }
+
+        /* Category management */
+        .category-manager { margin-bottom: 24px; }
+        .category-manager h3 { font-size: 1rem; font-weight: 700; color: var(--neon-violet); margin-bottom: 12px; }
+
+        .category-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+
+        .category-tag {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 14px; border-radius: 20px;
+            background: rgba(191,90,242,0.08); border: 1px solid rgba(191,90,242,0.2);
+            color: var(--neon-violet); font-size: 0.82rem; font-weight: 600;
+        }
+        .category-tag button {
+            background: none; border: none; color: var(--danger);
+            cursor: pointer; font-size: 0.9rem; padding: 0 2px;
+            opacity: 0.6; transition: opacity 0.3s;
+        }
+        .category-tag button:hover { opacity: 1; }
+
+        .add-category-row { display: flex; gap: 8px; }
+        .add-category-row input { flex: 1; }
+
+        /* Toast notification */
+        .toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            padding: 14px 28px; border-radius: 14px;
+            background: rgba(0,255,245,0.1); border: 1px solid rgba(0,255,245,0.3);
+            color: var(--neon-cyan); font-size: 0.9rem; font-weight: 600;
+            z-index: 1000; transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+            backdrop-filter: blur(20px);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.error { background: rgba(255,71,87,0.1); border-color: rgba(255,71,87,0.3); color: var(--danger); }
+
+        /* Loading spinner */
+        .spinner {
+            width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--neon-cyan); border-radius: 50%;
+            animation: spin 0.8s linear infinite; display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Config notice */
+        .config-notice {
+            max-width: 600px; margin: 100px auto; padding: 40px;
+            border-radius: var(--radius); text-align: center;
+            border: 1px solid rgba(255,0,229,0.2);
+        }
+        .config-notice h2 { color: var(--neon-magenta); margin-bottom: 16px; font-size: 1.3rem; }
+        .config-notice p { color: var(--text-muted); font-size: 0.92rem; line-height: 1.7; margin-bottom: 12px; }
+        .config-notice code {
+            display: block; text-align: left; padding: 16px; border-radius: 12px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            font-size: 0.82rem; color: var(--neon-cyan); overflow-x: auto;
+            margin: 16px 0; line-height: 1.8;
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .nav-links { gap: 4px; }
+            .nav-link { padding: 6px 14px; font-size: 0.8rem; }
+
+            .tryon-container {
+                grid-template-columns: 1fr; gap: 12px;
+            }
+            .catalog-panel {
+                position: static; max-height: none;
+                padding: 14px;
+            }
+            .catalog-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+            .catalog-item { aspect-ratio: 1; }
+
+            .canvas-wrapper { min-height: 350px; }
+            .canvas-toolbar { gap: 8px; padding: 10px 14px; }
+            .canvas-toolbar input[type="range"] { width: 80px; }
+
+            .add-product-grid { grid-template-columns: 1fr; }
+            .products-list { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+            .steps { grid-template-columns: 1fr; gap: 16px; }
+            .landing { padding: 100px 16px 60px; }
+            .landing-btns { flex-direction: column; align-items: center; }
+
+            .admin-header { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (max-width: 480px) {
+            .catalog-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow">
+    <div class="orb"></div>
+    <div class="orb"></div>
+    <div class="orb"></div>
+</div>
+
+<!-- Navigation -->
+<nav class="nav">
+    <div class="nav-logo" onclick="showScreen('landing')">TryOn</div>
+    <div class="nav-links">
+        <button class="nav-link active" onclick="showScreen('landing')">Главная</button>
+        <button class="nav-link" onclick="showScreen('tryon')">Примерочная</button>
+        <button class="nav-link" onclick="showScreen('admin')">Для бизнеса</button>
+    </div>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ============ LANDING SCREEN ============ -->
+<div class="screen active" id="screen-landing">
+    <div class="landing">
+        <h1>Виртуальная<br>примерочная</h1>
+        <p class="subtitle">
+            Загрузите фото — примерьте товар. Волосы, ногти, очки, диски — любой продукт,
+            который можно визуализировать на фото клиента.
+        </p>
+
+        <div class="landing-btns">
+            <button class="btn btn-primary" onclick="showScreen('tryon')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Попробовать
+            </button>
+            <button class="btn btn-secondary" onclick="showScreen('admin')">
+                Для бизнеса
+            </button>
+        </div>
+
+        <div class="steps">
+            <div class="step glass">
+                <div class="step-num">1</div>
+                <h3>Загрузите фото</h3>
+                <p>Клиент загружает свою фотографию — селфи, фото рук, машины или что угодно</p>
+            </div>
+            <div class="step glass">
+                <div class="step-num">2</div>
+                <h3>Выберите товар</h3>
+                <p>Выберите из каталога нужный продукт — он появится поверх фотографии</p>
+            </div>
+            <div class="step glass">
+                <div class="step-num">3</div>
+                <h3>Оцените результат</h3>
+                <p>Двигайте, масштабируйте, поворачивайте — и скачайте готовый результат</p>
+            </div>
+        </div>
+
+        <h2 style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 20px; font-weight: 600;">Подходит для любого бизнеса</h2>
+        <div class="usecases">
+            <div class="usecase-tag">Наращивание волос</div>
+            <div class="usecase-tag">Маникюр / ногти</div>
+            <div class="usecase-tag">Очки и аксессуары</div>
+            <div class="usecase-tag">Автодиски</div>
+            <div class="usecase-tag">Украшения</div>
+            <div class="usecase-tag">Головные уборы</div>
+            <div class="usecase-tag">Мебель в интерьере</div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ TRYON SCREEN ============ -->
+<div class="screen" id="screen-tryon">
+    <div id="tryon-config-check"></div>
+    <div class="tryon-container" id="tryon-main" style="display:none;">
+        <!-- Catalog sidebar -->
+        <div class="catalog-panel glass">
+            <h3>Каталог</h3>
+            <div class="catalog-categories" id="tryon-categories"></div>
+            <div class="catalog-grid" id="tryon-catalog"></div>
+        </div>
+
+        <!-- Canvas area -->
+        <div class="canvas-area">
+            <div class="canvas-toolbar glass">
+                <button class="btn btn-secondary btn-small" id="btn-upload-photo" onclick="document.getElementById('photo-input').click()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Загрузить фото
+                </button>
+                <input type="file" id="photo-input" accept="image/*" style="display:none">
+
+                <label>Размер</label>
+                <input type="range" id="slider-scale" min="10" max="300" value="100">
+
+                <label>Поворот</label>
+                <input type="range" id="slider-rotation" min="-180" max="180" value="0">
+
+                <label style="margin-left: auto;">
+                    <input type="checkbox" id="chk-mirror" style="margin-right: 4px;"> Отзеркалить
+                </label>
+
+                <button class="btn btn-primary btn-small" onclick="downloadResult()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Скачать
+                </button>
+            </div>
+
+            <div class="canvas-wrapper" id="canvas-wrapper">
+                <div class="upload-zone" id="upload-zone">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <p>Загрузите свою фотографию</p>
+                    <p class="upload-hint">Перетащите файл сюда или нажмите для выбора</p>
+                </div>
+                <canvas id="tryon-canvas" style="display:none;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============ ADMIN SCREEN ============ -->
+<div class="screen" id="screen-admin">
+    <div class="admin-container">
+        <div id="admin-config-check"></div>
+
+        <!-- Auth form -->
+        <div id="admin-auth" style="display:none;">
+            <div class="auth-form glass">
+                <h2 id="auth-title">Вход</h2>
+                <p class="auth-subtitle" id="auth-subtitle">Войдите, чтобы управлять каталогом</p>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" class="form-input" id="auth-email" placeholder="email@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Пароль</label>
+                    <input type="password" class="form-input" id="auth-password" placeholder="Минимум 6 символов">
+                </div>
+
+                <button class="btn btn-primary" style="width:100%; justify-content: center; margin-top: 8px;" id="auth-submit" onclick="handleAuth()">
+                    Войти
+                </button>
+
+                <div class="auth-error" id="auth-error"></div>
+
+                <div class="auth-toggle">
+                    <span id="auth-toggle-text">Нет аккаунта?</span>
+                    <a onclick="toggleAuthMode()" id="auth-toggle-link">Зарегистрироваться</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin panel -->
+        <div id="admin-panel" style="display:none;">
+            <div class="admin-header">
+                <div>
+                    <h2>Панель управления</h2>
+                    <span class="admin-user" id="admin-user-email"></span>
+                </div>
+                <button class="btn btn-secondary btn-small" onclick="handleLogout()">Выйти</button>
+            </div>
+
+            <!-- Categories -->
+            <div class="category-manager glass" style="padding: 24px; border-radius: var(--radius); margin-bottom: 24px;">
+                <h3>Категории</h3>
+                <div class="category-list" id="category-list"></div>
+                <div class="add-category-row">
+                    <input type="text" class="form-input" id="new-category" placeholder="Новая категория...">
+                    <button class="btn btn-secondary btn-small" onclick="addCategory()">Добавить</button>
+                </div>
+            </div>
+
+            <!-- Add product -->
+            <div class="add-product-card glass">
+                <h3>Добавить товар</h3>
+                <div class="add-product-grid">
+                    <div class="product-image-upload" id="product-image-upload" onclick="document.getElementById('product-image-input').click()">
+                        <div id="product-image-preview">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                            </svg>
+                            <p>Нажмите для загрузки PNG (прозрачный фон)</p>
+                        </div>
+                        <input type="file" id="product-image-input" accept="image/png,image/webp" style="display:none">
+                    </div>
+                    <div class="form-group">
+                        <label>Название товара</label>
+                        <input type="text" class="form-input" id="product-name" placeholder="Например: Блонд 60см">
+                    </div>
+                    <div class="form-group">
+                        <label>Категория</label>
+                        <select class="form-input" id="product-category" style="cursor:pointer;">
+                            <option value="">Выберите категорию</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-small" style="margin-top: 16px;" onclick="addProduct()" id="btn-add-product">
+                    Добавить товар
+                </button>
+            </div>
+
+            <!-- Products list -->
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--neon-violet); margin-bottom: 16px;">Ваши товары</h3>
+            <div class="products-list" id="products-list"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// FIREBASE CONFIG — Replace with your own Firebase config
+// ============================================================
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyDUTVQCq8hmhBYM9SdZbZ6edCUWD46A8KA",
+    authDomain: "truon-app.firebaseapp.com",
+    projectId: "truon-app",
+    storageBucket: "truon-app.firebasestorage.app",
+    messagingSenderId: "944588703331",
+    appId: "1:944588703331:web:fcbc7c07744d43a1bbda56"
+};
+
+// Check if Firebase is configured
+function isFirebaseConfigured() {
+    return FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId;
+}
+
+let db, auth;
+if (isFirebaseConfigured()) {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    auth = firebase.auth();
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.querySelectorAll('.nav-link')[['landing','tryon','admin'].indexOf(name)].classList.add('active');
+
+    if (name === 'tryon') initTryonScreen();
+    if (name === 'admin') initAdminScreen();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ============================================================
+// CONFIG NOTICE
+// ============================================================
+function showConfigNotice(containerId) {
+    document.getElementById(containerId).innerHTML = `
+        <div class="config-notice glass">
+            <h2>Настройте Firebase</h2>
+            <p>Для работы приложения нужен бесплатный Firebase-проект. Это займёт 5 минут:</p>
+            <p><strong>1.</strong> Перейдите на <a href="https://console.firebase.google.com" target="_blank" style="color:var(--neon-cyan)">console.firebase.google.com</a></p>
+            <p><strong>2.</strong> Создайте проект → включите Authentication (Email/Password) и Firestore Database</p>
+            <p><strong>3.</strong> В настройках проекта скопируйте конфигурацию и вставьте в код:</p>
+            <code>const FIREBASE_CONFIG = {
+    apiKey: "ваш-ключ",
+    authDomain: "проект.firebaseapp.com",
+    projectId: "ваш-проект",
+    storageBucket: "проект.appspot.com",
+    messagingSenderId: "123456",
+    appId: "1:123:web:abc"
+};</code>
+            <p style="font-size:0.82rem; opacity:0.6;">Откройте этот HTML-файл в текстовом редакторе и найдите FIREBASE_CONFIG</p>
+        </div>
+    `;
+}
+
+// ============================================================
+// TRYON SCREEN
+// ============================================================
+let userPhoto = null;       // Image object
+let overlayImg = null;      // Image object (selected product)
+let overlayState = { x: 0, y: 0, scale: 1, rotation: 0, mirror: false };
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+let canvas, ctx;
+let currentCategory = 'all';
+
+function initTryonScreen() {
+    if (!isFirebaseConfigured()) {
+        showConfigNotice('tryon-config-check');
+        document.getElementById('tryon-main').style.display = 'none';
+        return;
+    }
+    document.getElementById('tryon-config-check').innerHTML = '';
+    document.getElementById('tryon-main').style.display = '';
+
+    canvas = document.getElementById('tryon-canvas');
+    ctx = canvas.getContext('2d');
+
+    loadCatalogForTryon();
+    setupCanvasEvents();
+    setupUploadZone();
+    setupSliders();
+}
+
+function loadCatalogForTryon() {
+    const catContainer = document.getElementById('tryon-categories');
+    const grid = document.getElementById('tryon-catalog');
+
+    // Load categories
+    db.collection('categories').orderBy('name').onSnapshot(snap => {
+        const cats = snap.docs.map(d => d.data().name);
+        catContainer.innerHTML = `<button class="cat-btn active" onclick="filterCategory('all', this)">Все</button>`;
+        cats.forEach(c => {
+            catContainer.innerHTML += `<button class="cat-btn" onclick="filterCategory('${c}', this)">${c}</button>`;
+        });
+    });
+
+    // Load products
+    db.collection('products').orderBy('createdAt', 'desc').onSnapshot(snap => {
+        const products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderCatalogItems(products);
+    });
+}
+
+function renderCatalogItems(products) {
+    const grid = document.getElementById('tryon-catalog');
+    const filtered = currentCategory === 'all' ? products : products.filter(p => p.category === currentCategory);
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div class="catalog-empty">Товары ещё не добавлены.<br>Владелец добавит их в разделе «Для бизнеса»</div>';
+        return;
+    }
+
+    grid.innerHTML = filtered.map(p => `
+        <div class="catalog-item" onclick="selectProduct('${p.imageUrl}', this)" title="${p.name}">
+            <img src="${p.imageUrl}" alt="${p.name}">
+            <div class="catalog-item-name">${p.name}</div>
+        </div>
+    `).join('');
+}
+
+function filterCategory(cat, btn) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Re-trigger snapshot rendering
+    db.collection('products').orderBy('createdAt', 'desc').get().then(snap => {
+        renderCatalogItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+}
+
+function selectProduct(imageUrl, el) {
+    document.querySelectorAll('.catalog-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+        overlayImg = img;
+        // Set initial overlay position to center of canvas
+        overlayState.x = canvas.width / 2;
+        overlayState.y = canvas.height / 2;
+        overlayState.scale = Math.min(canvas.width, canvas.height) * 0.4 / Math.max(img.width, img.height);
+        overlayState.rotation = 0;
+        overlayState.mirror = false;
+        document.getElementById('slider-scale').value = overlayState.scale * 100;
+        document.getElementById('slider-rotation').value = 0;
+        document.getElementById('chk-mirror').checked = false;
+        drawCanvas();
+        showToast('Товар выбран — перемещайте его на фото');
+    };
+    img.src = imageUrl;
+}
+
+// Upload zone
+function setupUploadZone() {
+    const zone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('photo-input');
+
+    zone.onclick = () => fileInput.click();
+
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault(); zone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) loadUserPhoto(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', e => {
+        if (e.target.files.length) loadUserPhoto(e.target.files[0]);
+    });
+}
+
+function loadUserPhoto(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+            userPhoto = img;
+
+            // Size canvas to fit the image within the wrapper
+            const wrapper = document.getElementById('canvas-wrapper');
+            const maxW = wrapper.clientWidth - 4;
+            const maxH = window.innerHeight - 220;
+            const ratio = Math.min(maxW / img.width, maxH / img.height, 1);
+
+            canvas.width = img.width * ratio;
+            canvas.height = img.height * ratio;
+            canvas.style.display = 'block';
+            document.getElementById('upload-zone').style.display = 'none';
+
+            drawCanvas();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// Canvas drawing
+function drawCanvas() {
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw user photo
+    if (userPhoto) {
+        ctx.drawImage(userPhoto, 0, 0, canvas.width, canvas.height);
+    }
+
+    // Draw overlay
+    if (overlayImg) {
+        const w = overlayImg.width * overlayState.scale;
+        const h = overlayImg.height * overlayState.scale;
+
+        ctx.save();
+        ctx.translate(overlayState.x, overlayState.y);
+        ctx.rotate(overlayState.rotation * Math.PI / 180);
+        if (overlayState.mirror) ctx.scale(-1, 1);
+        ctx.drawImage(overlayImg, -w / 2, -h / 2, w, h);
+        ctx.restore();
+    }
+}
+
+// Canvas interaction
+function setupCanvasEvents() {
+    canvas.addEventListener('mousedown', onPointerDown);
+    canvas.addEventListener('mousemove', onPointerMove);
+    canvas.addEventListener('mouseup', onPointerUp);
+    canvas.addEventListener('mouseleave', onPointerUp);
+
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); onPointerDown(getTouchPos(e)); }, { passive: false });
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); onPointerMove(getTouchPos(e)); }, { passive: false });
+    canvas.addEventListener('touchend', e => { e.preventDefault(); onPointerUp(); }, { passive: false });
+
+    // Pinch to zoom
+    let lastPinchDist = 0;
+    canvas.addEventListener('touchmove', e => {
+        if (e.touches.length === 2) {
+            e.preventDefault();
+            const dist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            if (lastPinchDist > 0) {
+                const delta = dist / lastPinchDist;
+                overlayState.scale *= delta;
+                document.getElementById('slider-scale').value = overlayState.scale * 100;
+                drawCanvas();
+            }
+            lastPinchDist = dist;
+        }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => { lastPinchDist = 0; });
+}
+
+function getTouchPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+        clientX: e.touches[0].clientX,
+        clientY: e.touches[0].clientY,
+        offsetX: (e.touches[0].clientX - rect.left) * scaleX,
+        offsetY: (e.touches[0].clientY - rect.top) * scaleY
+    };
+}
+
+function onPointerDown(e) {
+    if (!overlayImg) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.offsetX !== undefined ? e.offsetX : (e.clientX - rect.left) * scaleX);
+    const my = (e.offsetY !== undefined ? e.offsetY : (e.clientY - rect.top) * scaleY);
+
+    isDragging = true;
+    dragStart.x = mx - overlayState.x;
+    dragStart.y = my - overlayState.y;
+}
+
+function onPointerMove(e) {
+    if (!isDragging || !overlayImg) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.offsetX !== undefined ? e.offsetX : (e.clientX - rect.left) * scaleX);
+    const my = (e.offsetY !== undefined ? e.offsetY : (e.clientY - rect.top) * scaleY);
+
+    overlayState.x = mx - dragStart.x;
+    overlayState.y = my - dragStart.y;
+    drawCanvas();
+}
+
+function onPointerUp() {
+    isDragging = false;
+}
+
+// Sliders
+function setupSliders() {
+    document.getElementById('slider-scale').addEventListener('input', e => {
+        overlayState.scale = e.target.value / 100;
+        drawCanvas();
+    });
+    document.getElementById('slider-rotation').addEventListener('input', e => {
+        overlayState.rotation = parseFloat(e.target.value);
+        drawCanvas();
+    });
+    document.getElementById('chk-mirror').addEventListener('change', e => {
+        overlayState.mirror = e.target.checked;
+        drawCanvas();
+    });
+}
+
+// Download
+function downloadResult() {
+    if (!userPhoto) { showToast('Сначала загрузите фото', true); return; }
+    const link = document.createElement('a');
+    link.download = 'tryon-result.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showToast('Результат сохранён!');
+}
+
+// ============================================================
+// ADMIN SCREEN
+// ============================================================
+let isRegisterMode = false;
+let currentUser = null;
+let productImageFile = null;
+let userCategories = [];
+
+function initAdminScreen() {
+    if (!isFirebaseConfigured()) {
+        showConfigNotice('admin-config-check');
+        document.getElementById('admin-auth').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'none';
+        return;
+    }
+    document.getElementById('admin-config-check').innerHTML = '';
+
+    auth.onAuthStateChanged(user => {
+        currentUser = user;
+        if (user) {
+            document.getElementById('admin-auth').style.display = 'none';
+            document.getElementById('admin-panel').style.display = '';
+            document.getElementById('admin-user-email').textContent = user.email;
+            loadAdminData();
+        } else {
+            document.getElementById('admin-auth').style.display = '';
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+    });
+
+    setupProductImageUpload();
+}
+
+// Auth
+function toggleAuthMode() {
+    isRegisterMode = !isRegisterMode;
+    document.getElementById('auth-title').textContent = isRegisterMode ? 'Регистрация' : 'Вход';
+    document.getElementById('auth-subtitle').textContent = isRegisterMode
+        ? 'Создайте аккаунт для управления каталогом'
+        : 'Войдите, чтобы управлять каталогом';
+    document.getElementById('auth-submit').textContent = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+    document.getElementById('auth-toggle-text').textContent = isRegisterMode ? 'Уже есть аккаунт?' : 'Нет аккаунта?';
+    document.getElementById('auth-toggle-link').textContent = isRegisterMode ? 'Войти' : 'Зарегистрироваться';
+    document.getElementById('auth-error').textContent = '';
+}
+
+async function handleAuth() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const errorEl = document.getElementById('auth-error');
+    errorEl.textContent = '';
+
+    if (!email || !password) { errorEl.textContent = 'Заполните все поля'; return; }
+    if (password.length < 6) { errorEl.textContent = 'Пароль минимум 6 символов'; return; }
+
+    try {
+        if (isRegisterMode) {
+            await auth.createUserWithEmailAndPassword(email, password);
+            // Create default categories
+            const defaultCats = ['Волосы', 'Ногти', 'Очки', 'Аксессуары'];
+            for (const cat of defaultCats) {
+                await db.collection('categories').add({ name: cat, userId: auth.currentUser.uid });
+            }
+            showToast('Аккаунт создан! Добро пожаловать!');
+        } else {
+            await auth.signInWithEmailAndPassword(email, password);
+            showToast('Вы вошли!');
+        }
+    } catch (err) {
+        const messages = {
+            'auth/email-already-in-use': 'Этот email уже зарегистрирован',
+            'auth/invalid-email': 'Неверный формат email',
+            'auth/wrong-password': 'Неверный пароль',
+            'auth/user-not-found': 'Пользователь не найден',
+            'auth/invalid-credential': 'Неверный email или пароль',
+        };
+        errorEl.textContent = messages[err.code] || err.message;
+    }
+}
+
+function handleLogout() {
+    auth.signOut();
+    showToast('Вы вышли из аккаунта');
+}
+
+// Load admin data
+function loadAdminData() {
+    loadCategories();
+    loadProducts();
+}
+
+function loadCategories() {
+    db.collection('categories')
+        .where('userId', '==', currentUser.uid)
+        .onSnapshot(snap => {
+            userCategories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            userCategories.sort((a, b) => a.name.localeCompare(b.name));
+            renderCategories();
+            updateCategorySelect();
+        }, err => {
+            console.error('Categories error:', err);
+            showToast('Ошибка загрузки категорий: ' + err.message, true);
+        });
+}
+
+function renderCategories() {
+    const list = document.getElementById('category-list');
+    list.innerHTML = userCategories.map(c => `
+        <div class="category-tag">
+            ${c.name}
+            <button onclick="deleteCategory('${c.id}')" title="Удалить">&times;</button>
+        </div>
+    `).join('');
+}
+
+function updateCategorySelect() {
+    const select = document.getElementById('product-category');
+    select.innerHTML = '<option value="">Выберите категорию</option>' +
+        userCategories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+}
+
+async function addCategory() {
+    const input = document.getElementById('new-category');
+    const name = input.value.trim();
+    if (!name) return;
+    await db.collection('categories').add({ name, userId: currentUser.uid });
+    input.value = '';
+    showToast(`Категория «${name}» добавлена`);
+}
+
+async function deleteCategory(id) {
+    if (!confirm('Удалить категорию?')) return;
+    await db.collection('categories').doc(id).delete();
+    showToast('Категория удалена');
+}
+
+// Compress image to base64 (max 800px, PNG with transparency)
+function compressImage(file, maxSize = 800) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if (w > maxSize || h > maxSize) {
+                    const ratio = Math.min(maxSize / w, maxSize / h);
+                    w *= ratio; h *= ratio;
+                }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/png', 0.8));
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Product image upload
+let productImageBase64 = null;
+
+function setupProductImageUpload() {
+    const input = document.getElementById('product-image-input');
+    input.addEventListener('change', async e => {
+        if (!e.target.files.length) return;
+        productImageFile = e.target.files[0];
+        productImageBase64 = await compressImage(productImageFile);
+        const preview = document.getElementById('product-image-preview');
+        preview.innerHTML = `<img src="${productImageBase64}" alt="Preview"><p>${productImageFile.name}</p>`;
+        document.getElementById('product-image-upload').classList.add('has-image');
+    });
+}
+
+// Add product (saves image as base64 in Firestore — no Storage needed)
+async function addProduct() {
+    const name = document.getElementById('product-name').value.trim();
+    const category = document.getElementById('product-category').value;
+
+    if (!name) { showToast('Введите название товара', true); return; }
+    if (!category) { showToast('Выберите категорию', true); return; }
+    if (!productImageBase64) { showToast('Загрузите изображение товара', true); return; }
+
+    const btn = document.getElementById('btn-add-product');
+    btn.innerHTML = '<span class="spinner"></span> Загрузка...';
+    btn.disabled = true;
+
+    try {
+        // Save to Firestore with base64 image
+        await db.collection('products').add({
+            name,
+            category,
+            imageUrl: productImageBase64,
+            userId: currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Reset form
+        document.getElementById('product-name').value = '';
+        document.getElementById('product-category').value = '';
+        productImageFile = null;
+        productImageBase64 = null;
+        document.getElementById('product-image-preview').innerHTML = `
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.4">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <p>Нажмите для загрузки PNG (прозрачный фон)</p>
+        `;
+        document.getElementById('product-image-upload').classList.remove('has-image');
+        document.getElementById('product-image-input').value = '';
+
+        showToast(`Товар «${name}» добавлен!`);
+    } catch (err) {
+        showToast('Ошибка: ' + err.message, true);
+    }
+
+    btn.innerHTML = 'Добавить товар';
+    btn.disabled = false;
+}
+
+// Load products
+function loadProducts() {
+    db.collection('products')
+        .where('userId', '==', currentUser.uid)
+        .onSnapshot(snap => {
+            const products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            products.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+            renderAdminProducts(products);
+        }, err => {
+            console.error('Products error:', err);
+            showToast('Ошибка загрузки товаров: ' + err.message, true);
+        });
+}
+
+function renderAdminProducts(products) {
+    const list = document.getElementById('products-list');
+    if (products.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">Товары ещё не добавлены</p>';
+        return;
+    }
+    list.innerHTML = products.map(p => `
+        <div class="product-card glass">
+            <button class="product-card-delete" onclick="deleteProduct('${p.id}')" title="Удалить">&times;</button>
+            <div class="product-card-img">
+                <img src="${p.imageUrl}" alt="${p.name}">
+            </div>
+            <div class="product-card-info">
+                <h4>${p.name}</h4>
+                <span class="product-cat">${p.category}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function deleteProduct(id) {
+    if (!confirm('Удалить товар?')) return;
+    await db.collection('products').doc(id).delete();
+    showToast('Товар удалён');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+// Photo input change (toolbar button)
+document.getElementById('photo-input').addEventListener('change', e => {
+    if (e.target.files.length) loadUserPhoto(e.target.files[0]);
+});
+</script>
+
+</body>
+</html>

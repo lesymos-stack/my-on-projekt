@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitFocus — Персональный фитнес-инструктор и нутрициолог</title>
+    <title>Ателье Body Sculpt — Интенсив по коррекции фигуры</title>
+    <meta name="description" content="Минус объёмы за 21 день — аппаратная коррекция фигуры, персональный тренер и индивидуальное меню в одном интенсиве. Призы каждой участнице!">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💎</text></svg>">
     <style>
         *, *::before, *::after {
             margin: 0;
@@ -30,7 +32,7 @@
 
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: #000000;
+            background: var(--bg-dark);
             color: var(--text);
             line-height: 1.65;
             overflow-x: hidden;
@@ -63,34 +65,31 @@
             position: absolute;
             border-radius: 50%;
             filter: blur(160px);
-            opacity: 0.22;
+            opacity: 0.2;
             animation: orbFloat 16s ease-in-out infinite alternate;
         }
 
         .bg-glow .orb:nth-child(1) {
-            width: 550px; height: 550px;
-            background: var(--neon-cyan);
-            top: -15%; left: -10%;
-        }
-
-        .bg-glow .orb:nth-child(2) {
-            width: 480px; height: 480px;
+            width: 500px; height: 500px;
             background: var(--neon-magenta);
-            bottom: -12%; right: -8%;
+            top: -12%; left: -8%;
+        }
+        .bg-glow .orb:nth-child(2) {
+            width: 450px; height: 450px;
+            background: var(--neon-cyan);
+            bottom: -10%; right: -6%;
             animation-delay: -6s;
         }
-
         .bg-glow .orb:nth-child(3) {
-            width: 400px; height: 400px;
+            width: 380px; height: 380px;
             background: var(--neon-violet);
-            top: 40%; left: 50%;
+            top: 45%; left: 55%;
             animation-delay: -10s;
         }
-
         .bg-glow .orb:nth-child(4) {
-            width: 300px; height: 300px;
+            width: 280px; height: 280px;
             background: var(--neon-lime);
-            top: 60%; left: 10%;
+            top: 65%; left: 8%;
             animation-delay: -14s;
             opacity: 0.1;
         }
@@ -98,6 +97,39 @@
         @keyframes orbFloat {
             0% { transform: translate(0, 0) scale(1) rotate(0deg); }
             100% { transform: translate(60px, -50px) scale(1.2) rotate(20deg); }
+        }
+
+        /* ========== PARTICLES ========== */
+        .particles {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            animation: particleRise linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes particleRise {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* ========== GLASS ========== */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
         }
 
         /* ========== LAYOUT ========== */
@@ -111,12 +143,19 @@
 
         section { padding: 80px 0; }
 
-        /* ========== GLASSMORPHISM UTILITY ========== */
-        .glass {
-            background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
+        /* ========== NEON DIVIDER ========== */
+        .neon-divider {
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), var(--neon-violet), transparent);
+            margin: 20px 0;
+            opacity: 0.4;
+            animation: dividerPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes dividerPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
         }
 
         /* ========== HERO ========== */
@@ -139,6 +178,7 @@
         .hero > *:nth-child(4) { animation-delay: 0.55s; }
         .hero > *:nth-child(5) { animation-delay: 0.7s; }
         .hero > *:nth-child(6) { animation-delay: 0.85s; }
+        .hero > *:nth-child(7) { animation-delay: 1.0s; }
 
         @keyframes heroReveal {
             from { opacity: 0; transform: translateY(50px) scale(0.96); filter: blur(8px); }
@@ -151,35 +191,35 @@
             gap: 8px;
             padding: 8px 22px;
             border-radius: 50px;
-            background: rgba(0, 255, 245, 0.06);
-            border: 1px solid rgba(0, 255, 245, 0.2);
-            color: var(--neon-cyan);
+            background: rgba(255, 0, 229, 0.06);
+            border: 1px solid rgba(255, 0, 229, 0.25);
+            color: var(--neon-magenta);
             font-size: 0.82rem;
             font-weight: 700;
             letter-spacing: 1.5px;
             margin-bottom: 30px;
             text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(0, 255, 245, 0.5);
+            text-shadow: 0 0 20px rgba(255, 0, 229, 0.5);
             animation: badgeGlow 3s ease-in-out infinite alternate !important;
         }
 
         @keyframes badgeGlow {
-            0% { box-shadow: 0 0 10px rgba(0, 255, 245, 0.1), inset 0 0 10px rgba(0, 255, 245, 0.05); }
-            100% { box-shadow: 0 0 25px rgba(0, 255, 245, 0.2), inset 0 0 20px rgba(0, 255, 245, 0.08); }
+            0% { box-shadow: 0 0 10px rgba(255, 0, 229, 0.1), inset 0 0 10px rgba(255, 0, 229, 0.05); }
+            100% { box-shadow: 0 0 25px rgba(255, 0, 229, 0.25), inset 0 0 20px rgba(255, 0, 229, 0.08); }
         }
 
         .hero h1 {
-            font-size: clamp(2.2rem, 6vw, 3.8rem);
+            font-size: clamp(2.2rem, 6.5vw, 3.8rem);
             font-weight: 900;
             line-height: 1.1;
-            margin-bottom: 24px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta), var(--neon-violet), var(--neon-cyan));
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan), var(--neon-violet), var(--neon-magenta));
             background-size: 400% 400%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             animation: neonGradient 8s ease-in-out infinite !important;
-            filter: drop-shadow(0 0 30px rgba(0, 255, 245, 0.15));
+            filter: drop-shadow(0 0 30px rgba(255, 0, 229, 0.15));
         }
 
         @keyframes neonGradient {
@@ -189,18 +229,32 @@
             75% { background-position: 0% 100%; }
         }
 
+        .hero__hook {
+            font-size: clamp(1.05rem, 2.8vw, 1.35rem);
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .hero__hook em {
+            font-style: normal;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 18px rgba(0, 255, 245, 0.4);
+        }
+
         .hero p {
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-size: clamp(0.95rem, 2.2vw, 1.1rem);
             color: var(--text-muted);
-            max-width: 640px;
-            margin: 0 auto 44px;
+            max-width: 620px;
+            margin: 0 auto 40px;
         }
 
         /* ========== HERO STATS ========== */
         .hero-stats {
             display: flex;
             gap: 12px;
-            margin-top: 48px;
+            margin-top: 44px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -220,10 +274,10 @@
             inset: 0;
             border-radius: 20px;
             padding: 1px;
-            background: linear-gradient(135deg, rgba(0, 255, 245, 0.3), rgba(255, 0, 229, 0.3));
+            background: linear-gradient(135deg, rgba(255, 0, 229, 0.3), rgba(0, 255, 245, 0.3));
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: xor;
+            mask-composite: exclude;
             -webkit-mask-composite: xor;
         }
 
@@ -259,17 +313,104 @@
             50% { transform: translateY(14px); opacity: 0.8; }
         }
 
+        /* ========== BUTTONS — ANIMATED ========== */
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 22px 56px;
+            border: none;
+            border-radius: 60px;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+            color: #05050f;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-decoration: none;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+            animation: ctaPulse 3s ease-in-out infinite;
+            letter-spacing: 0.3px;
+            overflow: hidden;
+        }
+
+        /* Shine sweep */
+        .btn-cta::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -100%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+            transform: translateY(-50%) rotate(25deg);
+            animation: btnShine 4s ease-in-out infinite;
+        }
+
+        @keyframes btnShine {
+            0%, 100% { left: -100%; }
+            50% { left: 100%; }
+        }
+
+        /* Glow behind button */
+        .btn-cta::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 64px;
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+            z-index: -1;
+            opacity: 0;
+            filter: blur(18px);
+            transition: opacity 0.4s;
+        }
+
+        .btn-cta:hover {
+            transform: scale(1.08);
+            box-shadow:
+                0 0 30px rgba(255, 0, 229, 0.4),
+                0 0 60px rgba(0, 255, 245, 0.2),
+                0 0 100px rgba(255, 0, 229, 0.1);
+        }
+
+        .btn-cta:hover::after {
+            opacity: 0.5;
+        }
+
+        @keyframes ctaPulse {
+            0% {
+                box-shadow:
+                    0 0 0 0 rgba(255, 0, 229, 0.4),
+                    0 0 20px rgba(255, 0, 229, 0.15);
+            }
+            50% {
+                box-shadow:
+                    0 0 0 20px rgba(255, 0, 229, 0),
+                    0 0 40px rgba(0, 255, 245, 0.15);
+            }
+            100% {
+                box-shadow:
+                    0 0 0 0 rgba(255, 0, 229, 0),
+                    0 0 20px rgba(255, 0, 229, 0.15);
+            }
+        }
+
+        .btn-cta svg, .btn-cta span {
+            position: relative;
+            z-index: 1;
+        }
+
         /* ========== SECTION TITLES ========== */
         .section-title {
             text-align: center;
             font-size: clamp(1.6rem, 4.5vw, 2.5rem);
             font-weight: 900;
             margin-bottom: 14px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet));
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            filter: drop-shadow(0 0 20px rgba(0, 255, 245, 0.12));
+            filter: drop-shadow(0 0 20px rgba(255, 0, 229, 0.12));
         }
 
         .section-subtitle {
@@ -296,18 +437,18 @@
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s;
         }
 
-        /* Neon border gradient */
+        /* Animated neon border */
         .card::before {
             content: '';
             position: absolute;
             inset: 0;
             border-radius: var(--radius);
             padding: 1px;
-            background: linear-gradient(135deg, transparent 20%, var(--neon-cyan) 40%, var(--neon-magenta) 60%, transparent 80%);
+            background: linear-gradient(135deg, transparent 20%, var(--neon-magenta) 40%, var(--neon-cyan) 60%, transparent 80%);
             background-size: 300% 300%;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: xor;
+            mask-composite: exclude;
             -webkit-mask-composite: xor;
             animation: borderFlow 6s linear infinite;
             opacity: 0.5;
@@ -330,8 +471,8 @@
             pointer-events: none;
         }
 
-        .card:nth-child(1)::after { box-shadow: inset 0 0 40px rgba(0, 255, 245, 0.06), 0 0 50px rgba(0, 255, 245, 0.08); }
-        .card:nth-child(2)::after { box-shadow: inset 0 0 40px rgba(255, 0, 229, 0.06), 0 0 50px rgba(255, 0, 229, 0.08); }
+        .card:nth-child(1)::after { box-shadow: inset 0 0 40px rgba(255, 0, 229, 0.06), 0 0 50px rgba(255, 0, 229, 0.08); }
+        .card:nth-child(2)::after { box-shadow: inset 0 0 40px rgba(0, 255, 245, 0.06), 0 0 50px rgba(0, 255, 245, 0.08); }
         .card:nth-child(3)::after { box-shadow: inset 0 0 40px rgba(57, 255, 20, 0.06), 0 0 50px rgba(57, 255, 20, 0.08); }
 
         .card:hover::before { opacity: 1; }
@@ -355,7 +496,6 @@
             align-items: center;
             justify-content: center;
             margin-bottom: 24px;
-            position: relative;
         }
 
         .card-icon svg {
@@ -365,12 +505,12 @@
         }
 
         .card:nth-child(1) .card-icon {
-            background: rgba(0, 255, 245, 0.08);
-            box-shadow: 0 0 20px rgba(0, 255, 245, 0.1);
-        }
-        .card:nth-child(2) .card-icon {
             background: rgba(255, 0, 229, 0.08);
             box-shadow: 0 0 20px rgba(255, 0, 229, 0.1);
+        }
+        .card:nth-child(2) .card-icon {
+            background: rgba(0, 255, 245, 0.08);
+            box-shadow: 0 0 20px rgba(0, 255, 245, 0.1);
         }
         .card:nth-child(3) .card-icon {
             background: rgba(57, 255, 20, 0.08);
@@ -383,8 +523,8 @@
             font-weight: 700;
         }
 
-        .card:nth-child(1) h3 { color: var(--neon-cyan); text-shadow: 0 0 15px rgba(0, 255, 245, 0.3); }
-        .card:nth-child(2) h3 { color: var(--neon-magenta); text-shadow: 0 0 15px rgba(255, 0, 229, 0.3); }
+        .card:nth-child(1) h3 { color: var(--neon-magenta); text-shadow: 0 0 15px rgba(255, 0, 229, 0.3); }
+        .card:nth-child(2) h3 { color: var(--neon-cyan); text-shadow: 0 0 15px rgba(0, 255, 245, 0.3); }
         .card:nth-child(3) h3 { color: var(--neon-lime); text-shadow: 0 0 15px rgba(57, 255, 20, 0.3); }
 
         .card p {
@@ -393,7 +533,7 @@
             line-height: 1.65;
         }
 
-        /* ========== FEATURES ========== */
+        /* ========== INCLUDED FEATURES ========== */
         .features {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -418,10 +558,10 @@
             inset: 0;
             border-radius: 20px;
             padding: 1px;
-            background: linear-gradient(135deg, rgba(0, 255, 245, 0.15), rgba(255, 0, 229, 0.15));
+            background: linear-gradient(135deg, rgba(255, 0, 229, 0.15), rgba(0, 255, 245, 0.15));
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: xor;
+            mask-composite: exclude;
             -webkit-mask-composite: xor;
             transition: opacity 0.3s;
             opacity: 0.5;
@@ -440,10 +580,8 @@
             flex-shrink: 0;
         }
 
-        .feature-item:nth-child(1) .feat-icon { background: rgba(0, 255, 245, 0.08); }
-        .feature-item:nth-child(2) .feat-icon { background: rgba(255, 0, 229, 0.08); }
-        .feature-item:nth-child(3) .feat-icon { background: rgba(191, 90, 242, 0.08); }
-        .feature-item:nth-child(4) .feat-icon { background: rgba(57, 255, 20, 0.08); }
+        .feature-item:nth-child(odd) .feat-icon { background: rgba(255, 0, 229, 0.08); }
+        .feature-item:nth-child(even) .feat-icon { background: rgba(0, 255, 245, 0.08); }
 
         .feature-item svg {
             flex-shrink: 0;
@@ -488,7 +626,7 @@
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: xor;
+            mask-composite: exclude;
             -webkit-mask-composite: xor;
         }
 
@@ -518,10 +656,10 @@
 
         .audience-card:hover .audience-icon::after { opacity: 1; }
 
-        .audience-card:nth-child(1) .audience-icon { background: rgba(0, 255, 245, 0.1); }
-        .audience-card:nth-child(1) .audience-icon::after { box-shadow: 0 0 25px rgba(0, 255, 245, 0.3); }
-        .audience-card:nth-child(2) .audience-icon { background: rgba(255, 0, 229, 0.1); }
-        .audience-card:nth-child(2) .audience-icon::after { box-shadow: 0 0 25px rgba(255, 0, 229, 0.3); }
+        .audience-card:nth-child(1) .audience-icon { background: rgba(255, 0, 229, 0.1); }
+        .audience-card:nth-child(1) .audience-icon::after { box-shadow: 0 0 25px rgba(255, 0, 229, 0.3); }
+        .audience-card:nth-child(2) .audience-icon { background: rgba(0, 255, 245, 0.1); }
+        .audience-card:nth-child(2) .audience-icon::after { box-shadow: 0 0 25px rgba(0, 255, 245, 0.3); }
         .audience-card:nth-child(3) .audience-icon { background: rgba(191, 90, 242, 0.1); }
         .audience-card:nth-child(3) .audience-icon::after { box-shadow: 0 0 25px rgba(191, 90, 242, 0.3); }
         .audience-card:nth-child(4) .audience-icon { background: rgba(57, 255, 20, 0.1); }
@@ -533,8 +671,8 @@
             margin-bottom: 10px;
         }
 
-        .audience-card:nth-child(1) h4 { color: var(--neon-cyan); }
-        .audience-card:nth-child(2) h4 { color: var(--neon-magenta); }
+        .audience-card:nth-child(1) h4 { color: var(--neon-magenta); }
+        .audience-card:nth-child(2) h4 { color: var(--neon-cyan); }
         .audience-card:nth-child(3) h4 { color: var(--neon-violet); }
         .audience-card:nth-child(4) h4 { color: var(--neon-lime); }
 
@@ -560,11 +698,11 @@
             inset: 0;
             border-radius: var(--radius);
             padding: 1px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta), var(--neon-violet));
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan), var(--neon-violet));
             background-size: 200% 200%;
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: xor;
+            mask-composite: exclude;
             -webkit-mask-composite: xor;
             animation: borderFlow 5s linear infinite;
         }
@@ -573,7 +711,7 @@
             font-size: 1.5rem;
             font-weight: 800;
             margin-bottom: 14px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -587,7 +725,7 @@
             line-height: 1.7;
         }
 
-        /* ========== CTA ========== */
+        /* ========== CTA SECTION ========== */
         .cta-section {
             text-align: center;
             padding: 100px 0 80px;
@@ -597,7 +735,7 @@
             font-size: clamp(1.6rem, 4.5vw, 2.5rem);
             font-weight: 900;
             margin-bottom: 16px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -605,110 +743,34 @@
 
         .cta-section > p {
             color: var(--text-muted);
-            margin-bottom: 44px;
+            margin-bottom: 12px;
             font-size: 1.1rem;
             max-width: 520px;
             margin-left: auto;
             margin-right: auto;
         }
 
-        .btn-cta {
+        .cta__urgency {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
-            padding: 22px 56px;
-            border: none;
-            border-radius: 60px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
-            color: #05050f;
-            font-size: 1.2rem;
-            font-weight: 800;
-            text-decoration: none;
-            cursor: pointer;
-            position: relative;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
-            animation: ctaPulse 3s ease-in-out infinite;
-            letter-spacing: 0.3px;
-            overflow: hidden;
+            gap: 7px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--neon-magenta);
+            margin-bottom: 36px;
+            text-shadow: 0 0 12px rgba(255, 0, 229, 0.3);
+            animation: urgencyBlink 3s ease-in-out infinite;
         }
 
-        .btn-cta::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: -100%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transform: translateY(-50%) rotate(25deg);
-            animation: btnShine 4s ease-in-out infinite;
+        @keyframes urgencyBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
-        @keyframes btnShine {
-            0%, 100% { left: -100%; }
-            50% { left: 100%; }
-        }
-
-        .btn-cta:hover {
-            transform: scale(1.08);
-            box-shadow:
-                0 0 30px rgba(0, 255, 245, 0.4),
-                0 0 60px rgba(255, 0, 229, 0.2),
-                0 0 100px rgba(0, 255, 245, 0.1);
-        }
-
-        @keyframes ctaPulse {
-            0% {
-                box-shadow:
-                    0 0 0 0 rgba(0, 255, 245, 0.4),
-                    0 0 20px rgba(0, 255, 245, 0.15);
-            }
-            50% {
-                box-shadow:
-                    0 0 0 20px rgba(0, 255, 245, 0),
-                    0 0 40px rgba(255, 0, 229, 0.15);
-            }
-            100% {
-                box-shadow:
-                    0 0 0 0 rgba(0, 255, 245, 0),
-                    0 0 20px rgba(0, 255, 245, 0.15);
-            }
-        }
-
-        .btn-cta svg {
-            flex-shrink: 0;
-            position: relative;
-            z-index: 1;
-        }
-
-        .btn-cta span {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ========== FLOATING PARTICLES ========== */
-        .particles {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .particle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            animation: particleRise linear infinite;
-            opacity: 0;
-        }
-
-        @keyframes particleRise {
-            0% { transform: translateY(100vh) scale(0); opacity: 0; }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.6; }
-            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        .cta__guarantee {
+            margin-top: 20px;
+            font-size: 0.82rem;
+            color: var(--text-muted);
         }
 
         /* ========== FOOTER ========== */
@@ -721,23 +783,12 @@
         }
 
         footer span {
-            color: var(--neon-cyan);
-            text-shadow: 0 0 10px rgba(0, 255, 245, 0.3);
-        }
-
-        /* ========== HORIZONTAL NEON LINE ========== */
-        .neon-divider {
-            width: 100%;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-magenta), var(--neon-violet), transparent);
-            margin: 20px 0;
-            opacity: 0.4;
-            animation: dividerPulse 4s ease-in-out infinite;
-        }
-
-        @keyframes dividerPulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.7; }
+            background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            font-weight: 700;
         }
 
         /* ========== RESPONSIVE ========== */
@@ -752,7 +803,7 @@
             .benefit-banner { padding: 28px 20px; }
             .audience-grid { grid-template-columns: 1fr 1fr; }
 
-            /* FORCE all blocks visible on mobile */
+            /* Force cards visible on mobile — JS observer fallback */
             .card {
                 opacity: 1 !important;
                 transform: none !important;
@@ -764,13 +815,22 @@
                 transform: none !important;
             }
 
-            /* Lighten heavy effects for mobile performance */
+            /* Simplify heavy effects for mobile performance */
             .card::before,
             .card::after,
+            .hero-stat::before,
             .feature-item::before,
             .audience-card::before,
             .benefit-banner::before {
                 animation: none;
+            }
+            .card,
+            .feature-item,
+            .audience-card,
+            .benefit-banner,
+            .hero-stat {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
             }
             .bg-glow .orb {
                 filter: blur(120px);
@@ -805,27 +865,35 @@
     <section class="hero">
         <div class="badge">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            Тренд 2026
+            Старт нового потока
         </div>
-        <h1>FitFocus — персональный фитнес&#8209;инструктор и&nbsp;нутрициолог у&nbsp;тебя в&nbsp;телефоне</h1>
-        <p>Подсчёт калорий, персональное меню, индивидуальные тренировки для дома и зала, отслеживание прогресса по фото — всё в одном приложении</p>
-        <a href="#cta" class="btn-cta">
+        <h1>Ателье Body&nbsp;Sculpt</h1>
+        <div class="hero__hook">
+            Минус объёмы за <em>21 день</em> — без голодовок,<br>
+            без изнурительных марафонов
+        </div>
+        <p>
+            Аппаратная коррекция фигуры + персональный тренер + индивидуальное меню
+            в&nbsp;одном интенсиве. Вы не&nbsp;просто худеете — вы перестраиваете тело
+            под себя раз и&nbsp;навсегда.
+        </p>
+        <a href="https://t.me/+fOxNQ5A9Z1NiMTIy" target="_blank" rel="noopener noreferrer" class="btn-cta">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            <span>Начать бесплатно</span>
+            <span>Хочу участвовать</span>
         </a>
 
         <div class="hero-stats">
             <div class="hero-stat glass">
-                <div class="num">24/7</div>
-                <div class="label">Доступ</div>
+                <div class="num">21</div>
+                <div class="label">День</div>
             </div>
             <div class="hero-stat glass">
-                <div class="num">500+</div>
-                <div class="label">Тренировок</div>
+                <div class="num">5</div>
+                <div class="label">Занятий / нед.</div>
             </div>
             <div class="hero-stat glass">
-                <div class="num">10 000+</div>
-                <div class="label">Рецептов</div>
+                <div class="num">100%</div>
+                <div class="label">Призы всем</div>
             </div>
         </div>
 
@@ -840,13 +908,60 @@
 
     <!-- Advantages -->
     <section id="advantages">
-        <h2 class="section-title">Три сильных преимущества</h2>
-        <p class="section-subtitle">Почему FitFocus заменит персонального тренера и диетолога</p>
+        <h2 class="section-title">Почему участницы получают результат</h2>
+        <p class="section-subtitle">Каждый элемент программы усиливает остальные — тело меняется быстро и&nbsp;заметно</p>
 
         <div class="cards">
             <div class="card glass">
                 <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--neon-magenta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="12" cy="12" r="6"/>
+                        <circle cx="12" cy="12" r="2"/>
+                    </svg>
+                </div>
+                <h3>Тройной удар по объёмам</h3>
+                <p>Аппаратные процедуры разбивают жировые отложения, тренер закрепляет рельеф, а&nbsp;персональное меню не&nbsp;даёт килограммам вернуться. Три силы — один мощный результат.</p>
+            </div>
+
+            <div class="card glass">
+                <div class="card-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <h3>Под вас, а не «для всех»</h3>
+                <p>Забудьте шаблонные марафоны. Методики, нагрузки и&nbsp;меню строятся под ваш тип фигуры и&nbsp;ритм жизни — вы увидите свой максимум, а&nbsp;не&nbsp;чужой.</p>
+            </div>
+
+            <div class="card glass">
+                <div class="card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--neon-lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 12 20 22 4 22 4 12"/>
+                        <rect x="2" y="7" width="20" height="5"/>
+                        <line x1="12" y1="22" x2="12" y2="7"/>
+                        <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+                        <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+                    </svg>
+                </div>
+                <h3>Призы — не обещание, а факт</h3>
+                <p>3&nbsp;главных приза для лидеров, но&nbsp;подарок получит каждая участница без исключения. Вы вкладываетесь в&nbsp;себя — и&nbsp;получаете ещё больше в&nbsp;ответ.</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="neon-divider"></div>
+
+    <!-- What's included -->
+    <section id="features">
+        <h2 class="section-title">Что внутри интенсива</h2>
+        <p class="section-subtitle">Полный набор инструментов для вашей трансформации за 21 день</p>
+
+        <div class="features">
+            <div class="feature-item glass">
+                <div class="feat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-magenta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
                         <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
                         <line x1="6" y1="1" x2="6" y2="4"/>
@@ -854,13 +969,14 @@
                         <line x1="14" y1="1" x2="14" y2="4"/>
                     </svg>
                 </div>
-                <h3>Умное питание под ваши цели</h3>
-                <p>Автоматический подсчёт калорий, БЖУ и микроэлементов. Приложение составляет ежедневное меню с учётом ваших предпочтений, аллергий и целей — похудение, набор массы или поддержание формы.</p>
+                <div>
+                    <strong>Аппаратная коррекция — 2 раза / нед.</strong>
+                    <p>Индивидуально подобранные методики, которые работают с проблемными зонами прицельно и&nbsp;без боли.</p>
+                </div>
             </div>
-
-            <div class="card glass">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--neon-magenta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div class="feature-item glass">
+                <div class="feat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6.5 6.5L17.5 17.5"/>
                         <path d="M3 10l1-1 3 3-1 1z"/>
                         <path d="M21 14l-1 1-3-3 1-1z"/>
@@ -868,65 +984,31 @@
                         <path d="M10 21l-1-1 3-3 1 1z"/>
                     </svg>
                 </div>
-                <h3>Тренировки для любого места</h3>
-                <p>Выбирайте формат: дома без оборудования, в тренажёрном зале или на улице. Программы адаптируются под ваш уровень — от новичка до продвинутого, с видео-инструкциями для каждого упражнения.</p>
+                <div>
+                    <strong>Онлайн-тренировки — 3 раза / нед.</strong>
+                    <p>Живые занятия с фитнес-тренером. Контроль техники, мотивация и&nbsp;адаптация под ваш уровень в&nbsp;реальном времени.</p>
+                </div>
             </div>
-
-            <div class="card glass">
-                <div class="card-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--neon-lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M23 6l-9.5 9.5-5-5L1 18"/>
-                        <polyline points="17 6 23 6 23 12"/>
+            <div class="feature-item glass">
+                <div class="feat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-magenta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
                     </svg>
                 </div>
-                <h3>Визуальный прогресс по фото</h3>
-                <p>Загружайте фотографии и наблюдайте за трансформацией тела. Умный алгоритм анализирует изменения, показывает динамику и мотивирует продолжать — вы видите реальные результаты, а не только цифры на весах.</p>
-            </div>
-        </div>
-    </section>
-
-    <div class="neon-divider"></div>
-
-    <!-- What it does -->
-    <section id="features">
-        <h2 class="section-title">Что умеет FitFocus</h2>
-        <p class="section-subtitle">Полный набор инструментов для вашей трансформации</p>
-
-        <div class="features">
-            <div class="feature-item glass">
-                <div class="feat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
-                </div>
                 <div>
-                    <strong>Подсчёт калорий</strong>
-                    <p>Точный расчёт КБЖУ под ваши цели — похудение, набор мышечной массы или поддержание формы.</p>
+                    <strong>Персональный расчёт БЖУ + меню</strong>
+                    <p>Точный расчёт калорий и макронутриентов. Готовое ежедневное меню, которое легко вписать в&nbsp;любой график.</p>
                 </div>
             </div>
             <div class="feature-item glass">
                 <div class="feat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-magenta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
                 </div>
                 <div>
-                    <strong>Меню на каждый день</strong>
-                    <p>Готовый план питания на неделю с рецептами и списком продуктов. Можно менять блюда под настроение.</p>
-                </div>
-            </div>
-            <div class="feature-item glass">
-                <div class="feat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <div>
-                    <strong>Программы тренировок</strong>
-                    <p>Выбирайте: дома, в зале или на улице. Программы с таймерами, видео и адаптацией под ваш уровень.</p>
-                </div>
-            </div>
-            <div class="feature-item glass">
-                <div class="feat-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--neon-lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                </div>
-                <div>
-                    <strong>Прогресс по фото</strong>
-                    <p>Загружайте фото — приложение отслеживает визуальные изменения и показывает динамику трансформации.</p>
+                    <strong>Бонусы: тазовое дно + нумерология</strong>
+                    <p>Уроки по укреплению мышц тазового дна и&nbsp;персональная сессия с&nbsp;нумерологом — забота о&nbsp;теле и&nbsp;внутренний баланс.</p>
                 </div>
             </div>
         </div>
@@ -936,43 +1018,51 @@
 
     <!-- Audience -->
     <section id="audience">
-        <h2 class="section-title">Для кого подходит FitFocus</h2>
-        <p class="section-subtitle">Неважно, кто вы — приложение адаптируется под ваши задачи</p>
+        <h2 class="section-title">Узнаёте себя?</h2>
+        <p class="section-subtitle">Этот интенсив создан для вас, если...</p>
 
         <div class="audience-grid">
             <div class="audience-card glass">
                 <div class="audience-icon">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-magenta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
                 </div>
-                <h4>Новичкам</h4>
-                <p>Не знаете с чего начать? FitFocus проведёт за руку: от первого упражнения до стабильных привычек. Никакой перегрузки информацией.</p>
+                <h4>Устали от диет</h4>
+                <p>Перепробовали всё, а вес возвращается? Здесь — система, которая даёт стабильный результат, потому что работает комплексно.</p>
             </div>
             <div class="audience-card glass">
                 <div class="audience-icon">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-magenta)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
                 </div>
-                <h4>Занятым людям</h4>
-                <p>Нет времени на зал и готовку? Получите 20-минутные тренировки для дома и простые рецепты из доступных продуктов.</p>
+                <h4>Нужен персональный подход</h4>
+                <p>Шаблонные марафоны «для всех» не&nbsp;работают на вашу фигуру. Здесь каждая деталь подбирается лично под вас.</p>
             </div>
             <div class="audience-card glass">
                 <div class="audience-icon">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-violet)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
                 </div>
-                <h4>Тем, кто худеет</h4>
-                <p>Точный дефицит калорий без голодания, сбалансированное меню и тренировки на жиросжигание. Видите прогресс каждую неделю.</p>
+                <h4>Хотите перезагрузку</h4>
+                <p>Не просто скинуть пару кило, а&nbsp;по-настоящему перестроить отношения с&nbsp;телом — фигура, питание, внутренний баланс.</p>
             </div>
             <div class="audience-card glass">
                 <div class="audience-icon">
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--neon-lime)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    </svg>
                 </div>
-                <h4>Спортсменам</h4>
-                <p>Продвинутые программы, периодизация нагрузок, точный расчёт макронутриентов. FitFocus растёт вместе с вами.</p>
+                <h4>Нужна мотивация</h4>
+                <p>Тренер рядом каждый день, призы на&nbsp;финише, поддержка сообщества — вы точно не&nbsp;бросите на&nbsp;полпути.</p>
             </div>
         </div>
 
         <div class="benefit-banner glass">
-            <h3>Почему это выгодно?</h3>
-            <p>Персональный тренер стоит от 3 000 &#8381; за занятие, нутрициолог — от 5 000 &#8381; за консультацию. FitFocus заменяет обоих 24/7 за стоимость одной чашки кофе в день. Экспертный подход без переплаты — и результат, который видно.</p>
+            <h3>Выгода, которую сложно не заметить</h3>
+            <p>Тренер, диетолог, аппаратные процедуры, нумеролог — по&nbsp;отдельности это в&nbsp;разы дороже. Здесь всё в&nbsp;одном пакете + гарантированные подарки каждой участнице. Вы инвестируете в&nbsp;себя — и&nbsp;возвращаете больше, чем вложили.</p>
         </div>
     </section>
 
@@ -980,16 +1070,24 @@
 
     <!-- CTA -->
     <section class="cta-section" id="cta">
-        <h2>Начни трансформацию сегодня</h2>
-        <p>Скачай FitFocus и получи персональный план питания и тренировок уже через 5 минут</p>
-        <a href="#" class="btn-cta">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Скачать FitFocus</span>
+        <h2>Ваше новое тело — через 21&nbsp;день</h2>
+        <p>Не откладывайте — каждый день без действия отдаляет результат</p>
+        <div class="cta__urgency">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Осталось несколько мест в текущем потоке
+        </div>
+        <br>
+        <a href="https://t.me/+fOxNQ5A9Z1NiMTIy" target="_blank" rel="noopener noreferrer" class="btn-cta">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <span>Хочу участвовать</span>
         </a>
+        <div class="cta__guarantee">Без скрытых платежей. Призы — каждой участнице.</div>
     </section>
 
     <footer>
-        &copy; 2026 <span>FitFocus</span> — Твой путь к лучшей версии себя
+        &copy; 2026 <span>Ателье Body Sculpt</span> — Ваш путь к идеальной фигуре
     </footer>
 
 </div>
@@ -998,7 +1096,7 @@
     // ===== Floating neon particles =====
     (function() {
         const container = document.getElementById('particles');
-        const colors = ['#00fff5', '#ff00e5', '#bf5af2', '#39ff14', '#5e5eff'];
+        const colors = ['#ff00e5', '#00fff5', '#bf5af2', '#39ff14', '#5e5eff'];
         const count = 30;
         for (let i = 0; i < count; i++) {
             const p = document.createElement('div');
@@ -1020,19 +1118,14 @@
     // ===== Detect mobile =====
     const isMobile = window.innerWidth <= 768;
 
-    // ===== All animated elements =====
+    // ===== Intersection Observer for cards =====
     const allCards = document.querySelectorAll('.card');
-    const revealElements = document.querySelectorAll('.feature-item, .audience-card, .benefit-banner');
 
     if (isMobile) {
-        // Mobile: show everything immediately, no animation needed (CSS !important handles it)
+        // On mobile: show cards immediately, no animation needed (CSS handles it)
         allCards.forEach(card => card.classList.add('visible'));
-        revealElements.forEach(el => {
-            el.style.opacity = '1';
-            el.style.transform = 'none';
-        });
     } else {
-        // Desktop: observe each card individually
+        // On desktop: observe each card individually for reliable triggering
         const cardObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
@@ -1043,8 +1136,18 @@
         }, { threshold: 0.01, rootMargin: '0px 0px 50px 0px' });
 
         allCards.forEach(card => cardObserver.observe(card));
+    }
 
-        // Reveal features & audience
+    // ===== Reveal animation for features, audience, benefit =====
+    const revealElements = document.querySelectorAll('.feature-item, .audience-card, .benefit-banner');
+
+    if (isMobile) {
+        // On mobile: ensure everything is visible
+        revealElements.forEach(el => {
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+        });
+    } else {
         const revealObserver = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
@@ -1061,9 +1164,20 @@
             el.style.transition = `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${i * 0.08}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${i * 0.08}s`;
             revealObserver.observe(el);
         });
+    }
 
-        // 3D tilt effect (desktop only)
-        allCards.forEach(card => {
+    // ===== Failsafe: force show everything after 3s =====
+    setTimeout(() => {
+        allCards.forEach(card => card.classList.add('visible'));
+        revealElements.forEach(el => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0) scale(1)';
+        });
+    }, 3000);
+
+    // ===== 3D tilt effect on cards (desktop only) =====
+    if (!isMobile) {
+        document.querySelectorAll('.card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
                 const x = (e.clientX - rect.left) / rect.width - 0.5;
@@ -1075,46 +1189,6 @@
             });
         });
     }
-
-    // ===== Failsafe: force show everything after 3 seconds =====
-    setTimeout(() => {
-        allCards.forEach(card => card.classList.add('visible'));
-        revealElements.forEach(el => {
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0) scale(1)';
-        });
-    }, 3000);
-
-    // ===== Counter animation =====
-    const counterObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-                const nums = entry.target.querySelectorAll('.num');
-                nums.forEach(num => {
-                    const text = num.textContent;
-                    const match = text.match(/[\d\s]+/);
-                    if (match && text !== '24/7') {
-                        const target = parseInt(match[0].replace(/\s/g, ''));
-                        const prefix = text.substring(0, text.indexOf(match[0]));
-                        const suffix = text.substring(text.indexOf(match[0]) + match[0].length);
-                        let current = 0;
-                        const step = Math.max(1, Math.floor(target / 40));
-                        const interval = setInterval(() => {
-                            current += step;
-                            if (current >= target) {
-                                current = target;
-                                clearInterval(interval);
-                            }
-                            num.textContent = prefix + current.toLocaleString('ru-RU') + suffix;
-                        }, 30);
-                    }
-                });
-                counterObserver.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.5 });
-
-    document.querySelectorAll('.hero-stats').forEach(el => counterObserver.observe(el));
 </script>
 
 </body>
